@@ -1,0 +1,38 @@
+name: tienda-microservicios
+
+services:
+  productos:
+    build: ./productos-service
+    ports:
+      - "127.0.0.1:8181:8080"
+    environment:
+      DB_URL: "jdbc:h2:file:/data/productos;DB_CLOSE_ON_EXIT=FALSE"
+    volumes:
+      - productos_data:/data
+
+  pedidos:
+    build: ./pedidos-service
+    ports:
+      - "127.0.0.1:8082:8080"
+    environment:
+      DB_URL: "jdbc:h2:file:/data/pedidos;DB_CLOSE_ON_EXIT=FALSE"
+      PRODUCTOS_URL: "http://productos:8080"
+    volumes:
+      - pedidos_data:/data
+    depends_on:
+      - productos
+
+  gateway:
+    build: ./gateway-service
+    ports:
+      - "127.0.0.1:8180:8080"
+    environment:
+      PRODUCTOS_URL: "http://productos:8080"
+      PEDIDOS_URL: "http://pedidos:8080"
+    depends_on:
+      - productos
+      - pedidos
+
+volumes:
+  productos_data:
+  pedidos_data:
